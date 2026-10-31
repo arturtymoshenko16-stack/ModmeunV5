@@ -1,0 +1,42 @@
+name: Mobile APK and SO Builder
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Make Gradle Executable
+      run: chmod +x gradlew
+
+    - name: Build Arm32 and Arm64 Projects
+      run: ./gradlew assembleRelease
+
+    - name: Pack and Upload 32-bit and 64-bit APKs
+      uses: actions/upload-artifact@v4
+      with:
+        name: Finished-APKs
+        path: app/build/outputs/apk/release/*.apk
+
+    - name: Pack and Upload 32-bit and 64-bit .SO Libraries
+      uses: actions/upload-artifact@v4
+      with:
+        name: Native-SO-Libraries
+        path: app/build/intermediates/cmake/release/obj/
+        
